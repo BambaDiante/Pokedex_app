@@ -7,6 +7,7 @@ import { PokemonStat } from "@/components/Pokemon/PokemonStat";
 import { PokemonType } from "@/components/Pokemon/PokemonType";
 import { Row } from "@/components/Row";
 import { ThemedText } from "@/components/ThemedText";
+import { useAudioPlayer } from 'expo-audio';
 import { Image, Pressable, StyleSheet, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { Colors } from "../../../constants/Colors";
@@ -29,7 +30,30 @@ export default function Pokemon(){
     ?.flavor_text.replaceAll("\n",". ");
 
     const top=useSharedValue(0)
-    
+    const idString = typeof params.id === 'string' ? params.id : params.id?.[0] ?? '1';
+    const pokemonId = parseInt(idString, 10);
+    const player = useAudioPlayer(pokemon?.cries.latest)
+
+    const onImagePress = () => {
+        if (!pokemon?.cries.latest){
+            return;
+        }
+        player.seekTo(0)
+        player.play()
+    }
+
+    const onPrevious = () => {
+        router.replace({
+            pathname: '/pokemon/[id]',
+            params: { id: Math.max((Number(params.id) - 1),1)}
+        })
+    }
+    const onNext = () => {
+        router.replace({
+            pathname: '/pokemon/[id]',
+            params: { id: Math.min((Number(params.id) + 1),151) }
+        })
+    }
     return <RootView backgroundColor={colorType}>
         <View>
             <Image style={[styles.pokeball]} source={require("@/assets/images/pokeball_big.png")}  width={208} height={208}/>
@@ -48,13 +72,30 @@ export default function Pokemon(){
                     </ThemedText>
             </Row>
             <View style={styles.body}>
-                <Image 
-                        style={[styles.artwork]}
-                        source={{
-                        width: 200,
-                        height: 200,
-                        uri: getPokemonArtwork(parseInt(params.id as string, 10))
-                    }}/>
+                <Row style={[styles.imageRow]}>
+                    {pokemonId === 1 ? (
+                        <View style={{width:24,height:24}}/>
+                    ) : (
+                        <Pressable onPress={onPrevious}>
+                            <Image width={24} height={24} source={require("@/assets/images/preview.png")}/>
+                        </Pressable>
+                    )}
+
+                    <Pressable onPress={onImagePress}>
+                        <Image 
+                            style={[styles.artwork]}
+                            source={{
+                                width: 200,
+                                height: 200,
+                                uri: getPokemonArtwork(parseInt(params.id as string, 10))
+                            }}
+                        />
+                    </Pressable>
+
+                    <Pressable onPress={onNext}>
+                        <Image width={24} height={24} source={require("@/assets/images/next.png")}/>
+                    </Pressable>
+                </Row>
                 <Card style={styles.card}>
                     <Row  gap={16} style={{height:20}}>
                         {types.map((type: any) => (
@@ -124,9 +165,6 @@ const styles=StyleSheet.create({
         top:8,
     },
     artwork:{
-        position:"absolute",
-        top:-140,
-        alignSelf:'center', 
         zIndex:2,
     },
     body:{
@@ -138,5 +176,14 @@ const styles=StyleSheet.create({
         paddingTop:60,
         gap:16,
         alignItems:'center',
+    },
+    imageRow:{
+        position:"absolute",
+        top:-140,
+        zIndex:2,
+        justifyContent:'space-between',
+        left:0,
+        right:0,
+        paddingHorizontal:20,
     }
 })
