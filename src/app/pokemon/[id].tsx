@@ -8,7 +8,9 @@ import { PokemonType } from "@/components/Pokemon/PokemonType";
 import { Row } from "@/components/Row";
 import { ThemedText } from "@/components/ThemedText";
 import { useAudioPlayer } from 'expo-audio';
+import { useRef, useState } from "react";
 import { Image, Pressable, StyleSheet, View } from "react-native";
+import PagerView from "react-native-pager-view";
 import { useSharedValue } from "react-native-reanimated";
 import { Colors } from "../../../constants/Colors";
 import { formatSize, formatWeight, getPokemonArtwork } from "../../../functions/pokemon";
@@ -17,21 +19,69 @@ import { useThemeColors } from "../../../hooks/useThemeColor";
 
 // le [id] signifie que expo router peut creer des routes dynamiques
 //comme pokemon/12 etc
+
 export default function Pokemon(){
+    const params = useLocalSearchParams() as {id:string};
+
+    // id est maintenant un state local : il évolue au fil des swipes
+    // sans avoir besoin de recharger la page via router.replace
+    const [id, setId] = useState(parseInt(params.id, 10));
+
+    // offset garde en mémoire dans quelle direction on a swipé
+    // (0 = gauche/précédent, 1 = milieu/actuel, 2 = droite/suivant)
+    // useRef plutôt que useState car on n'a pas besoin de re-render à ce moment-là
+    const offset = useRef(1);
+
+    // Appelé en continu pendant le swipe : on retient juste la position de page ciblée
+    const onPageSelected = (e: {nativeEvent: {position: number}}) => {
+        offset.current = e.nativeEvent.position;
+    };
+
+    // Appelé quand le swipe est terminé (l'utilisateur a relâché et l'animation est finie)
+    const onPageScrollStateChanged = (e: {nativeEvent: {pageScrollState: string}}) => {
+        if (e.nativeEvent.pageScrollState === 'idle' && offset.current !== 1) {
+            // On calcule le nouvel id en fonction de la direction du swipe
+            // offset.current === 0 -> on a swipé vers la gauche -> id précédent
+            // offset.current === 2 -> on a swipé vers la droite -> id suivant
+            const newId = offset.current === 0
+                ? Math.max(id - 1, 1)
+                : Math.min(id + 1, 151);
+
+            setId(newId);
+            // on remet offset à 1 pour le prochain swipe
+            offset.current = 1;
+        }
+    };
+
+    return (
+        <PagerView
+            // key force le PagerView à se "reset" sur la page du milieu
+            // à chaque changement d'id, sinon il resterait sur la page qu'on vient de swiper
+            key={id}
+            onPageSelected={onPageSelected}
+            onPageScrollStateChanged={onPageScrollStateChanged}
+            initialPage={1}
+            style={{ flex: 1 }}
+        >
+            <PokemonView id={id - 1} />
+            <PokemonView id={id} />
+            <PokemonView id={id + 1} />
+        </PagerView>
+    );
+}
+
+
+function PokemonView({id}:{id:number}){
     const colors= useThemeColors();
-    const params=useLocalSearchParams();
-    const { data:pokemon } = useFetchQuery("/pokemon/[id]", { id: params.id as string })
-    const { data:species } = useFetchQuery("/pokemon-species/[id]", { id: params.id as string })
+    const { data:pokemon } = useFetchQuery("/pokemon/[id]", { id: id.toString() })
+    const { data:species } = useFetchQuery("/pokemon-species/[id]", { id: id.toString() })
     const mainType = pokemon?.types?.[0].type.name
     const colorType = mainType ? Colors.type[mainType as keyof typeof Colors.type] : colors.ting;
-    console.log({mainType,colorType})
     const types = pokemon?.types ?? [];
     const bio = species?.flavor_text_entries?.find((language: any) => language.language.name === 'en')
     ?.flavor_text.replaceAll("\n",". ");
 
     const top=useSharedValue(0)
-    const idString = typeof params.id === 'string' ? params.id : params.id?.[0] ?? '1';
-    const pokemonId = parseInt(idString, 10);
     const player = useAudioPlayer(pokemon?.cries.latest)
 
     const onImagePress = () => {
@@ -42,18 +92,6 @@ export default function Pokemon(){
         player.play()
     }
 
-    const onPrevious = () => {
-        router.replace({
-            pathname: '/pokemon/[id]',
-            params: { id: Math.max((Number(params.id) - 1),1)}
-        })
-    }
-    const onNext = () => {
-        router.replace({
-            pathname: '/pokemon/[id]',
-            params: { id: Math.min((Number(params.id) + 1),151) }
-        })
-    }
     return <RootView backgroundColor={colorType}>
         <View>
             <Image style={[styles.pokeball]} source={require("@/assets/images/pokeball_big.png")}  width={208} height={208}/>
@@ -68,17 +106,19 @@ export default function Pokemon(){
                     </Row>
                 </Pressable>
                     <ThemedText color="grayWhite" variant="subtitle2">
-                        #{ (params.id as string).padStart(3, '0') }
+                        #{ id.toString().padStart(3, '0') }
                     </ThemedText>
             </Row>
             <View style={styles.body}>
                 <Row style={[styles.imageRow]}>
-                    {pokemonId === 1 ? (
+                    {/* les flèches ne servent plus qu'à afficher un indice visuel,
+                        c'est maintenant le swipe qui déclenche la navigation */}
+                    {id <= 1 ? (
                         <View style={{width:24,height:24}}/>
                     ) : (
-                        <Pressable onPress={onPrevious}>
+                        <View style={{width:24,height:24}}>
                             <Image width={24} height={24} source={require("@/assets/images/preview.png")}/>
-                        </Pressable>
+                        </View>
                     )}
 
                     <Pressable onPress={onImagePress}>
@@ -87,14 +127,18 @@ export default function Pokemon(){
                             source={{
                                 width: 200,
                                 height: 200,
-                                uri: getPokemonArtwork(parseInt(params.id as string, 10))
+                                uri: getPokemonArtwork(id)
                             }}
                         />
                     </Pressable>
 
-                    <Pressable onPress={onNext}>
-                        <Image width={24} height={24} source={require("@/assets/images/next.png")}/>
-                    </Pressable>
+                    {id >= 151 ? (
+                        <View style={{width:24,height:24}}/>
+                    ) : (
+                        <View style={{width:24,height:24}}>
+                            <Image width={24} height={24} source={require("@/assets/images/next.png")}/>
+                        </View>
+                    )}
                 </Row>
                 <Card style={styles.card}>
                     <Row  gap={16} style={{height:20}}>
