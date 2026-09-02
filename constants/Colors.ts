@@ -1,0 +1,40 @@
+export const Colors ={
+    dark: {
+        ting: "#DC0A2D",
+        grayDark: "#212121",
+        grayMedium: "#666666",
+        grayLight: "#E0E0E0",
+        grayBackground: "#EFEFEF",
+        grayWhite: "#FFFFFF",
+    },
+    light: {
+        ting: "#DC0A2D",
+        grayDark: "#212121",
+        grayMedium: "#666666",
+        grayLight: "#EOE0E0",
+        grayBackground: "#EFEFEF",
+        grayWhite: "#FFFFFF",
+    },
+
+    type:{
+       bug: "#A7B723",
+       dark:"#75574C",
+       dragon: "#060506",
+       electric:"#F9CF30",
+       fairy:"#E69EAC",
+    //    fighting: "#C12239",
+       fighting:'#F57D31',
+       fire:"#F57D31",
+       flying:"#A891EC",
+       ghost:"#70559B",
+       normal:"#AAA67F",
+       grass:"#74CB48",
+       ground:"#DEC16B",
+       ice:"#9AD6DF",
+       poison: "#A43E9E",
+       psychic: "#FB5584",
+       rock:"#B69E31",
+       steel:"#B7B9D0",
+       water:"#6493EB",
+    }
+}
