@@ -56,7 +56,7 @@ export default function Pokemon(){
                         uri: getPokemonArtwork(parseInt(params.id as string, 10))
                     }}/>
                 <Card style={styles.card}>
-                    <Row  gap={16}>
+                    <Row  gap={16} style={{height:20}}>
                         {types.map((type: any) => (
                             <PokemonType name={type.type.name} key={type.type.name} />
                         ))}
