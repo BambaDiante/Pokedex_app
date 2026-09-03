@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mob",
-    "slug": "mob",
+    "name": "Pokedex",
+    "slug": "Pokedex",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
