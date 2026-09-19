@@ -1,5 +1,4 @@
 import { Image, Pressable, StyleSheet, View, ViewStyle } from "react-native";
-import { useThemeColors } from "../../../hooks/useThemeColor";
 import { Card } from "../Card";
 import { ThemedText } from "../ThemedText";
 
@@ -11,8 +10,6 @@ type Props = {
 }
 
 export function PokemonCard({ style, id, name, onPress }: Props) {
-    const colors = useThemeColors();
-    
     return (
         
         <Pressable onPress={onPress} style={style}>

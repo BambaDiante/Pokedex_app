@@ -4,17 +4,16 @@
     "slug": "mob",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/Pokeball.png",
+    "icon": "./assets/images/Pokedex.png",
     "scheme": "mob",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/images/Pokedex.png"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
+        "backgroundColor": "#DC0A2D",
+        "foregroundImage": "./assets/images/Pokedex.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,

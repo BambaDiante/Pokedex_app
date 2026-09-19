@@ -22,15 +22,15 @@ export function RootView({style,backgroundColor,...rest}:Props){
 
     useEffect(()=>{
         if(backgroundColor){
-            progress.value=0
-            progress.value= withTiming(1, {
+            progress.set(0)
+            progress.set(withTiming(1, {
                 duration: 700,
                 easing: Easing.out(Easing.quad),
                 reduceMotion: ReduceMotion.System,
-            });
+            }));
         }
         
-    },[backgroundColor])
+    },[backgroundColor, progress])
   
     
 
